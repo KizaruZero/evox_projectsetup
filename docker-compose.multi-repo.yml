@@ -1,0 +1,200 @@
+# Multi-Repository Docker Compose
+# This docker-compose is designed for separate repository setup
+
+version: "3.8"
+
+services:
+  # =====================================================
+  # NGINX Reverse Proxy
+  # =====================================================
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: eprocurement-nginx
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    depends_on:
+      account-api:
+        condition: service_healthy
+      general-api:
+        condition: service_healthy
+      invoice-api:
+        condition: service_healthy
+      vendor-api:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =====================================================
+  # Backend Services - Using separate repositories
+  # =====================================================
+  account-api:
+    build:
+      context: ../tugas_akhir-eprocurement-backend-account
+      dockerfile: Dockerfile
+      args:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    container_name: eprocurement-account-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8001
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__Jwt__Key=${JWT_KEY}
+      - AppSetting__Jwt__Issuer=${JWT_ISSUER}
+      - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
+      - AppSetting__Jwt__Audience2=${JWT_AUDIENCE_VENDOR}
+      - AppSetting__Jwt__Audience3=${JWT_AUDIENCE_GENERAL}
+      - AppSetting__Jwt__Audience4=${JWT_AUDIENCE_ACCOUNT}
+      - AppSetting__BaseUrl__AccountApi=${ACCOUNT_API_URL}
+      - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
+      - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
+      - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
+    ports:
+      - "8001:8001"
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  general-api:
+    build:
+      context: ../tugas_akhir-eprocurement-backend-general
+      dockerfile: Dockerfile
+      args:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    container_name: eprocurement-general-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8002
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__Jwt__Key=${JWT_KEY}
+      - AppSetting__Jwt__Issuer=${JWT_ISSUER}
+      - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
+      - AppSetting__Jwt__Audience2=${JWT_AUDIENCE_VENDOR}
+      - AppSetting__Jwt__Audience3=${JWT_AUDIENCE_GENERAL}
+      - AppSetting__Jwt__Audience4=${JWT_AUDIENCE_ACCOUNT}
+      - AppSetting__BaseUrl__AccountApi=${ACCOUNT_API_URL}
+      - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
+      - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
+      - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
+    ports:
+      - "8002:8002"
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  invoice-api:
+    build:
+      context: ../tugas_akhir-eprocurement-backend-invoice
+      dockerfile: Dockerfile
+      args:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    container_name: eprocurement-invoice-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8003
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__Jwt__Key=${JWT_KEY}
+      - AppSetting__Jwt__Issuer=${JWT_ISSUER}
+      - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
+      - AppSetting__Jwt__Audience2=${JWT_AUDIENCE_VENDOR}
+      - AppSetting__Jwt__Audience3=${JWT_AUDIENCE_GENERAL}
+      - AppSetting__Jwt__Audience4=${JWT_AUDIENCE_ACCOUNT}
+      - AppSetting__BaseUrl__AccountApi=${ACCOUNT_API_URL}
+      - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
+      - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
+      - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
+    ports:
+      - "8003:8003"
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  vendor-api:
+    build:
+      context: ../tugas_akhir-eprocurement-backend-vendor
+      dockerfile: Dockerfile
+      args:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    container_name: eprocurement-vendor-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_URLS=http://+:8004
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__Jwt__Key=${JWT_KEY}
+      - AppSetting__Jwt__Issuer=${JWT_ISSUER}
+      - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
+      - AppSetting__Jwt__Audience2=${JWT_AUDIENCE_VENDOR}
+      - AppSetting__Jwt__Audience3=${JWT_AUDIENCE_GENERAL}
+      - AppSetting__Jwt__Audience4=${JWT_AUDIENCE_ACCOUNT}
+      - AppSetting__BaseUrl__AccountApi=${ACCOUNT_API_URL}
+      - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
+      - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
+      - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
+    ports:
+      - "8004:8004"
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ../tugas_akhir-eprocurement-frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    container_name: eprocurement-frontend
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3000:80"
+    networks:
+      - eprocurement-network
+    restart: unless-stopped
+    depends_on:
+      - account-api
+      - general-api
+      - invoice-api
+      - vendor-api
+
+# =====================================================
+# Networks
+# =====================================================
+networks:
+  eprocurement-network:
+    driver: bridge
+    name: eprocurement-network
