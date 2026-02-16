@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # =====================================================
-# Multi-Repository Setup Script
+# Multi-Repository Setup Script (SSH Version)
 # =====================================================
-# This script clones all microservice repositories and
-# sets up the deployment configuration
+# This script clones all microservice repositories using SSH
+# Make sure your SSH key is added to GitHub
 
 set -e
 
@@ -15,16 +15,17 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 echo -e "${BLUE}======================================"
-echo "E-Procurement Multi-Repo Setup"
+echo "E-Procurement Multi-Repo Setup (SSH)"
 echo -e "======================================${NC}"
 
-# Configuration - UPDATE THESE WITH YOUR REPOSITORIES
-ACCOUNT_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-account.git"
-GENERAL_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-general.git"
-INVOICE_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-invoice.git"
-VENDOR_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-vendor.git"
-FRONTEND_REPO="https://github.com/FIGRIHANS/tugas_akhir-eprocurement-frontend.git"
-CONFIG_REPO="https://github.com/KizaruZero/evox_projectsetup.git"
+# Configuration - SSH URLs
+ACCOUNT_REPO="git@github.com:luthfan1234/tugas_akhir-eprocurement-backend-account.git"
+GENERAL_REPO="git@github.com:luthfan1234/tugas_akhir-eprocurement-backend-general.git"
+INVOICE_REPO="git@github.com:luthfan1234/tugas_akhir-eprocurement-backend-invoice.git"
+VENDOR_REPO="git@github.com:luthfan1234/tugas_akhir-eprocurement-backend-vendor.git"
+FRONTEND_REPO="git@github.com:FIGRIHANS/tugas_akhir-eprocurement-frontend.git"
+CONFIG_REPO="git@github.com:KizaruZero/evox_projectsetup.git"
+
 # Working directory
 WORK_DIR="$HOME/eprocurement"
 
@@ -35,55 +36,30 @@ mkdir -p "$WORK_DIR"
 cd "$WORK_DIR"
 
 # Clone repositories
-echo -e "${GREEN}Cloning repositories...${NC}"
+echo -e "${GREEN}Cloning repositories via SSH...${NC}"
 
-if [ ! -d "tugas_akhir-eprocurement-backend-account" ]; then
-    echo "Cloning Account API..."
-    git clone "$ACCOUNT_REPO"
-else
-    echo "Account API already exists, pulling latest..."
-    cd tugas_akhir-eprocurement-backend-account && git pull && cd ..
-fi
+clone_or_pull () {
+    REPO_URL=$1
+    DIR_NAME=$2
+    LABEL=$3
 
-if [ ! -d "tugas_akhir-eprocurement-backend-general" ]; then
-    echo "Cloning General API..."
-    git clone "$GENERAL_REPO"
-else
-    echo "General API already exists, pulling latest..."
-    cd tugas_akhir-eprocurement-backend-general && git pull && cd ..
-fi
+    if [ ! -d "$DIR_NAME" ]; then
+        echo "Cloning $LABEL..."
+        git clone "$REPO_URL" "$DIR_NAME"
+    else
+        echo "$LABEL already exists, pulling latest..."
+        cd "$DIR_NAME"
+        git pull origin main || git pull origin master
+        cd ..
+    fi
+}
 
-if [ ! -d "tugas_akhir-eprocurement-backend-invoice" ]; then
-    echo "Cloning Invoice API..."
-    git clone "$INVOICE_REPO"
-else
-    echo "Invoice API already exists, pulling latest..."
-    cd tugas_akhir-eprocurement-backend-invoice && git pull && cd ..
-fi
-
-if [ ! -d "tugas_akhir-eprocurement-backend-vendor" ]; then
-    echo "Cloning Vendor API..."
-    git clone "$VENDOR_REPO"
-else
-    echo "Vendor API already exists, pulling latest..."
-    cd tugas_akhir-eprocurement-backend-vendor && git pull && cd ..
-fi
-
-if [ ! -d "tugas_akhir-eprocurement-frontend" ]; then
-    echo "Cloning Frontend..."
-    git clone "$FRONTEND_REPO"
-else
-    echo "Frontend already exists, pulling latest..."
-    cd tugas_akhir-eprocurement-frontend && git pull && cd ..
-fi
-
-if [ ! -d "config" ]; then
-    echo "Cloning deployment config..."
-    git clone "$CONFIG_REPO" config
-else
-    echo "Config already exists, pulling latest..."
-    cd config && git pull && cd ..
-fi
+clone_or_pull "$ACCOUNT_REPO" "tugas_akhir-eprocurement-backend-account" "Account API"
+clone_or_pull "$GENERAL_REPO" "tugas_akhir-eprocurement-backend-general" "General API"
+clone_or_pull "$INVOICE_REPO" "tugas_akhir-eprocurement-backend-invoice" "Invoice API"
+clone_or_pull "$VENDOR_REPO" "tugas_akhir-eprocurement-backend-vendor" "Vendor API"
+clone_or_pull "$FRONTEND_REPO" "tugas_akhir-eprocurement-frontend" "Frontend"
+clone_or_pull "$CONFIG_REPO" "config" "Deployment Config"
 
 # Setup environment
 echo -e "${GREEN}Setting up environment...${NC}"
@@ -112,15 +88,14 @@ echo -e "======================================${NC}"
 echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "1. cd $WORK_DIR/config"
-echo "2. nano .env (configure your environment)"
+echo "2. nano .env"
 echo "3. docker-compose build"
 echo "4. docker-compose up -d"
 echo ""
-echo -e "${YELLOW}To update a specific service:${NC}"
-echo "cd $WORK_DIR/tugas_akhir-eprocurement-backend-account"
+echo -e "${YELLOW}To update a service:${NC}"
+echo "cd $WORK_DIR/<service-folder>"
 echo "git pull"
 echo "cd $WORK_DIR/config"
-echo "docker-compose build account-api"
-echo "docker-compose up -d account-api"
+echo "docker-compose up -d --build <service-name>"
 
 exit 0
