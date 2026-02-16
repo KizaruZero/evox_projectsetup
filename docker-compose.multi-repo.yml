@@ -1,43 +1,8 @@
-# Multi-Repository Docker Compose
-# This docker-compose is designed for separate repository setup
-
 version: "3.8"
 
 services:
   # =====================================================
-  # NGINX Reverse Proxy
-  # =====================================================
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    container_name: eprocurement-nginx
-    ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
-    depends_on:
-      account-api:
-        condition: service_healthy
-      general-api:
-        condition: service_healthy
-      invoice-api:
-        condition: service_healthy
-      vendor-api:
-        condition: service_healthy
-      frontend:
-        condition: service_started
-    networks:
-      - eprocurement-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # =====================================================
-  # Backend Services - Using separate repositories
+  # Backend Services with Traefik Labels
   # =====================================================
   account-api:
     build:
@@ -60,10 +25,9 @@ services:
       - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
-    ports:
-      - "8001:8001"
     networks:
       - eprocurement-network
+      - traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -71,6 +35,23 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+
+      # HTTP Router
+      - "traefik.http.routers.account-api.rule=Host(`account-api.codeverse.id`)"
+      - "traefik.http.routers.account-api.entrypoints=web"
+      - "traefik.http.services.account-api.loadbalancer.server.port=8001"
+
+      # HTTPS Router
+      - "traefik.http.routers.account-api-secure.rule=Host(`account-api.codeverse.id`)"
+      - "traefik.http.routers.account-api-secure.entrypoints=websecure"
+      - "traefik.http.routers.account-api-secure.tls.certresolver=le"
+
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.account-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.account-api.middlewares=account-redirect"
 
   general-api:
     build:
@@ -93,10 +74,9 @@ services:
       - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
-    ports:
-      - "8002:8002"
     networks:
       - eprocurement-network
+      - traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
@@ -104,6 +84,23 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+
+      # HTTP Router
+      - "traefik.http.routers.general-api.rule=Host(`api.codeverse.id`)"
+      - "traefik.http.routers.general-api.entrypoints=web"
+      - "traefik.http.services.general-api.loadbalancer.server.port=8002"
+
+      # HTTPS Router
+      - "traefik.http.routers.general-api-secure.rule=Host(`api.codeverse.id`)"
+      - "traefik.http.routers.general-api-secure.entrypoints=websecure"
+      - "traefik.http.routers.general-api-secure.tls.certresolver=le"
+
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.general-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.general-api.middlewares=general-redirect"
 
   invoice-api:
     build:
@@ -126,10 +123,9 @@ services:
       - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
-    ports:
-      - "8003:8003"
     networks:
       - eprocurement-network
+      - traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
@@ -137,6 +133,23 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+
+      # HTTP Router
+      - "traefik.http.routers.invoice-api.rule=Host(`invoice-api.codeverse.id`)"
+      - "traefik.http.routers.invoice-api.entrypoints=web"
+      - "traefik.http.services.invoice-api.loadbalancer.server.port=8003"
+
+      # HTTPS Router
+      - "traefik.http.routers.invoice-api-secure.rule=Host(`invoice-api.codeverse.id`)"
+      - "traefik.http.routers.invoice-api-secure.entrypoints=websecure"
+      - "traefik.http.routers.invoice-api-secure.tls.certresolver=le"
+
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.invoice-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.invoice-api.middlewares=invoice-redirect"
 
   vendor-api:
     build:
@@ -159,10 +172,9 @@ services:
       - AppSetting__BaseUrl__GeneralApi=${GENERAL_API_URL}
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
-    ports:
-      - "8004:8004"
     networks:
       - eprocurement-network
+      - traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
@@ -170,7 +182,27 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
 
+      # HTTP Router
+      - "traefik.http.routers.vendor-api.rule=Host(`vendor-api.codeverse.id`)"
+      - "traefik.http.routers.vendor-api.entrypoints=web"
+      - "traefik.http.services.vendor-api.loadbalancer.server.port=8004"
+
+      # HTTPS Router
+      - "traefik.http.routers.vendor-api-secure.rule=Host(`vendor-api.codeverse.id`)"
+      - "traefik.http.routers.vendor-api-secure.entrypoints=websecure"
+      - "traefik.http.routers.vendor-api-secure.tls.certresolver=le"
+
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.vendor-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.vendor-api.middlewares=vendor-redirect"
+
+  # =====================================================
+  # Frontend - Vue.js Application
+  # =====================================================
   frontend:
     build:
       context: ../tugas_akhir-eprocurement-frontend
@@ -180,16 +212,27 @@ services:
     container_name: eprocurement-frontend
     environment:
       - NODE_ENV=production
-    ports:
-      - "3000:80"
     networks:
       - eprocurement-network
+      - traefik
     restart: unless-stopped
-    depends_on:
-      - account-api
-      - general-api
-      - invoice-api
-      - vendor-api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+
+      # HTTP Router
+      - "traefik.http.routers.frontend.rule=Host(`evox.codeverse.id`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+      # HTTPS Router
+      - "traefik.http.routers.frontend-secure.rule=Host(`evox.codeverse.id`)"
+      - "traefik.http.routers.frontend-secure.entrypoints=websecure"
+      - "traefik.http.routers.frontend-secure.tls.certresolver=le"
+
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.frontend-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.frontend.middlewares=frontend-redirect"
 
 # =====================================================
 # Networks
@@ -198,3 +241,6 @@ networks:
   eprocurement-network:
     driver: bridge
     name: eprocurement-network
+  traefik:
+    external: true
+    name: proxy
