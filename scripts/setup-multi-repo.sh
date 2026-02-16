@@ -24,8 +24,7 @@ GENERAL_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-ge
 INVOICE_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-invoice.git"
 VENDOR_REPO="https://github.com/luthfan1234/tugas_akhir-eprocurement-backend-vendor.git"
 FRONTEND_REPO="https://github.com/FIGRIHANS/tugas_akhir-eprocurement-frontend.git"
-CONFIG_REPO="https://github.com/your/eprocurement-deployment.git"
-
+CONFIG_REPO="https://github.com/KizaruZero/evox_projectsetup.git"
 # Working directory
 WORK_DIR="$HOME/eprocurement"
 
