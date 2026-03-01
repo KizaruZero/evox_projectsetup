@@ -5,16 +5,17 @@ services:
   # Backend Services with Traefik Labels
   # =====================================================
   account-api:
-    build:
-      context: ../tugas_akhir-eprocurement-backend-account
-      dockerfile: Dockerfile
-      args:
-        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    # build:
+    #   context: ../tugas_akhir-eprocurement-backend-account
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    image: kizarukaede/eprocurement-account-api:latest
     container_name: eprocurement-account-api
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=http://+:8001
-      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING_ACCOUNT}
       - AppSetting__Jwt__Key=${JWT_KEY}
       - AppSetting__Jwt__Issuer=${JWT_ISSUER}
       - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
@@ -26,8 +27,7 @@ services:
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
     networks:
-      - eprocurement-network
-      - traefik
+      - proxy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -54,16 +54,17 @@ services:
       - "traefik.http.routers.account-api.middlewares=account-redirect"
 
   general-api:
-    build:
-      context: ../tugas_akhir-eprocurement-backend-general
-      dockerfile: Dockerfile
-      args:
-        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    # build:
+    #   context: ../tugas_akhir-eprocurement-backend-general
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    image: kizarukaede/eprocurement-general-api:latest
     container_name: eprocurement-general-api
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=http://+:8002
-      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING_GENERAL}
       - AppSetting__Jwt__Key=${JWT_KEY}
       - AppSetting__Jwt__Issuer=${JWT_ISSUER}
       - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
@@ -75,8 +76,7 @@ services:
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
     networks:
-      - eprocurement-network
-      - traefik
+      - proxy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
@@ -103,16 +103,17 @@ services:
       - "traefik.http.routers.general-api.middlewares=general-redirect"
 
   invoice-api:
-    build:
-      context: ../tugas_akhir-eprocurement-backend-invoice
-      dockerfile: Dockerfile
-      args:
-        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    # build:
+    #   context: ../tugas_akhir-eprocurement-backend-invoice
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    image: kizarukaede/eprocurement-invoice-api:latest
     container_name: eprocurement-invoice-api
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=http://+:8003
-      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING_INVOICE}
       - AppSetting__Jwt__Key=${JWT_KEY}
       - AppSetting__Jwt__Issuer=${JWT_ISSUER}
       - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
@@ -124,8 +125,7 @@ services:
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
     networks:
-      - eprocurement-network
-      - traefik
+      - proxy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
@@ -152,16 +152,17 @@ services:
       - "traefik.http.routers.invoice-api.middlewares=invoice-redirect"
 
   vendor-api:
-    build:
-      context: ../tugas_akhir-eprocurement-backend-vendor
-      dockerfile: Dockerfile
-      args:
-        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    # build:
+    #   context: ../tugas_akhir-eprocurement-backend-vendor
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    image: kizarukaede/eprocurement-vendor-api:latest
     container_name: eprocurement-vendor-api
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=http://+:8004
-      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppSetting__DBConnectionString=${DB_CONNECTION_STRING_VENDOR}
       - AppSetting__Jwt__Key=${JWT_KEY}
       - AppSetting__Jwt__Issuer=${JWT_ISSUER}
       - AppSetting__Jwt__Audience1=${JWT_AUDIENCE_INVOICE}
@@ -173,8 +174,7 @@ services:
       - AppSetting__BaseUrl__InvoiceApi=${INVOICE_API_URL}
       - AppSetting__BaseUrl__VendorApi=${VENDOR_API_URL}
     networks:
-      - eprocurement-network
-      - traefik
+      - proxy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
@@ -204,17 +204,17 @@ services:
   # Frontend - Vue.js Application
   # =====================================================
   frontend:
-    build:
-      context: ../tugas_akhir-eprocurement-frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    # build:
+    #   context: ../tugas_akhir-eprocurement-frontend
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    image: kizarukaede/eprocurement-frontend:latest
     container_name: eprocurement-frontend
     environment:
       - NODE_ENV=production
     networks:
-      - eprocurement-network
-      - traefik
+      - proxy
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -238,9 +238,5 @@ services:
 # Networks
 # =====================================================
 networks:
-  eprocurement-network:
-    driver: bridge
-    name: eprocurement-network
-  traefik:
+  proxy:
     external: true
-    name: proxy
